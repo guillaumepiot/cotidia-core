@@ -52,7 +52,8 @@ def admin_user(f):
             email="john@blue.com",
             is_active=True,
             is_staff=True)
-        self.admin_user.set_password('demo5678')
+        self.admin_user_pwd = "demo5678"
+        self.admin_user.set_password(self.admin_user_pwd)
         self.admin_user.save()
         self.admin_user_token, created = Token.objects.get_or_create(
             user=self.admin_user)
@@ -72,7 +73,8 @@ def normal_user(f):
             email="bob@green.com",
             is_active=True,
             is_staff=False)
-        self.normal_user.set_password('demo1234')
+        self.normal_user_pwd = "demo1234"
+        self.normal_user.set_password(self.normal_user_pwd)
         self.normal_user.save()
         self.normal_user_token, created = Token.objects.get_or_create(
             user=self.normal_user)
@@ -93,7 +95,8 @@ def alt_user(f):
             is_active=True,
             is_staff=False,
         )
-        self.alt_user.set_password('altpass')
+        self.alt_user_pwd = "altpass"
+        self.alt_user.set_password(self.alt_user_pwd)
         self.alt_user.save()
         self.alt_user_token, created = Token.objects.get_or_create(
             user=self.alt_user,
