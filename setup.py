@@ -18,7 +18,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='cotidia_core',
+    name='cotidia-core',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -80,8 +80,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'Django==1.10',
-        'djangorestframework==3.3.2'
+        'Django>=1.10.2',
         ],
 
     # List additional groups of dependencies here (e.g. development
