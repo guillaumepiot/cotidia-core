@@ -16,7 +16,7 @@ class APITests(APITestCase):
 """
 from rest_framework.authtoken.models import Token
 
-from account.models import User
+from cotidia.account.models import User
 
 
 def superuser(f):
