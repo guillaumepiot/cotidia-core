@@ -9,12 +9,12 @@ logger = logging.getLogger(__name__)
 
 
 class PublicFieldFile(FieldFile):
-    def save(self, name, content, save=True):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         if hasattr(settings, "PUBLIC_FILE_STORAGE"):
             self.storage = import_string(settings.PUBLIC_FILE_STORAGE)()
         else:
             logger.warning("PUBLIC_FILE_STORAGE not set.")
-        super().save(name, content, save=save)
 
 
 class PublicFileField(FileField):
