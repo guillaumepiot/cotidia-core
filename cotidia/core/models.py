@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
 
 
 class BaseModel(models.Model):
@@ -10,3 +11,6 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
+
+    def get_content_type(self):
+        return ContentType.objects.get_for_model(self)
