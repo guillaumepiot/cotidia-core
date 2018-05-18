@@ -38,7 +38,7 @@ class StaticS3Boto3Storage(S3Boto3Storage):
 class PublicS3Boto3Storage(S3Boto3Storage):
 
     file_overwrite = True
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME_STATIC
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
     default_acl = "public-read"
     bucket_acl = "public-read"
     encryption = False
