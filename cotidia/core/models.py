@@ -1,4 +1,5 @@
 import uuid
+import importlib
 
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
@@ -45,3 +46,23 @@ class BaseModel(models.Model):
 
     def get_content_type(self):
         return ContentType.objects.get_for_model(self)
+
+    @classmethod
+    def get_admin_serializer(cls):
+        if hasattr(cls, 'SearchProvider'):
+            path = cls.SearchProvider.admin_serializer.split('.')
+            module = ".".join(path[:-1])
+            module_cls = path[-1]
+            mod = importlib.import_module(module)
+            s = getattr(mod, module_cls)
+            return s
+
+        else:
+            mod = importlib.import_module('cotidia.admin.serializers')
+
+            class GenericSerializer(mod.AdminModelSerializer):
+                class Meta:
+                    model = cls
+                    fields = '__all__'
+
+            return GenericSerializer
