@@ -2,6 +2,7 @@ import uuid
 import importlib
 
 from django.db import models
+from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -46,6 +47,15 @@ class BaseModel(models.Model):
 
     def get_content_type(self):
         return ContentType.objects.get_for_model(self)
+
+    def get_admin_detail_url(self):
+        return reverse(
+            '{app_label}-admin:{model_name}-detail'.format(
+                app_label=self._meta.app_label,
+                model_name=self._meta.model_name
+            ),
+            kwargs={'pk': self.id}
+        )
 
     @classmethod
     def get_admin_serializer(cls):
