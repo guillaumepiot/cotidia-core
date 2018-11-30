@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 
 
-class CalculatedField():
+class CalculatedField:
     def __init__(self, function, field_name=None):
         self.function = function
         if field_name is None:
@@ -33,7 +33,9 @@ def calculated_field(_handlers):
             field = CalculatedField(func, field_name)
             _handlers.append(field)
             return field
+
         return wrapper
+
     return parameter_wrapper
 
 
@@ -50,17 +52,32 @@ class BaseModel(models.Model):
 
     def get_admin_detail_url(self):
         return reverse(
-            '{app_label}-admin:{model_name}-detail'.format(
-                app_label=self._meta.app_label,
-                model_name=self._meta.model_name
+            "{app_label}-admin:{model_name}-detail".format(
+                app_label=self._meta.app_label, model_name=self._meta.model_name
             ),
-            kwargs={'pk': self.id}
+            kwargs={"pk": self.id},
+        )
+
+    def get_admin_update_url(self):
+        return reverse(
+            "{app_label}-admin:{model_name}-update".format(
+                app_label=self._meta.app_label, model_name=self._meta.model_name
+            ),
+            kwargs={"pk": self.id},
+        )
+
+    def get_admin_delete_url(self):
+        return reverse(
+            "{app_label}-admin:{model_name}-delete".format(
+                app_label=self._meta.app_label, model_name=self._meta.model_name
+            ),
+            kwargs={"pk": self.id},
         )
 
     @classmethod
     def get_admin_serializer(cls):
-        if hasattr(cls, 'SearchProvider'):
-            path = cls.SearchProvider.admin_serializer.split('.')
+        if hasattr(cls, "SearchProvider"):
+            path = cls.SearchProvider.admin_serializer.split(".")
             module = ".".join(path[:-1])
             module_cls = path[-1]
             mod = importlib.import_module(module)
@@ -68,11 +85,11 @@ class BaseModel(models.Model):
             return s
 
         else:
-            mod = importlib.import_module('cotidia.admin.serializers')
+            mod = importlib.import_module("cotidia.admin.serializers")
 
             class GenericSerializer(mod.AdminModelSerializer):
                 class Meta:
                     model = cls
-                    fields = '__all__'
+                    fields = "__all__"
 
             return GenericSerializer
