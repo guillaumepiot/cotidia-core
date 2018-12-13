@@ -2,7 +2,7 @@ import uuid
 import importlib
 
 from django.db import models
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -70,28 +70,37 @@ class BaseModel(models.Model):
         return kwargs
 
     def get_admin_detail_url(self):
-        return reverse(
-            "{app_label}-admin:{model_name}-detail".format(
-                app_label=self._meta.app_label, model_name=self._meta.model_name
-            ),
-            kwargs=self.get_url_kwargs(),
-        )
+        try:
+            return reverse(
+                "{app_label}-admin:{model_name}-detail".format(
+                    app_label=self._meta.app_label, model_name=self._meta.model_name
+                ),
+                kwargs=self.get_url_kwargs(),
+            )
+        except NoReverseMatch:
+            return "no-reverse-match"
 
     def get_admin_update_url(self):
-        return reverse(
-            "{app_label}-admin:{model_name}-update".format(
-                app_label=self._meta.app_label, model_name=self._meta.model_name
-            ),
-            kwargs=self.get_url_kwargs(),
-        )
+        try:
+            return reverse(
+                "{app_label}-admin:{model_name}-update".format(
+                    app_label=self._meta.app_label, model_name=self._meta.model_name
+                ),
+                kwargs=self.get_url_kwargs(),
+            )
+        except NoReverseMatch:
+            return "no-reverse-match"
 
     def get_admin_delete_url(self):
-        return reverse(
-            "{app_label}-admin:{model_name}-delete".format(
-                app_label=self._meta.app_label, model_name=self._meta.model_name
-            ),
-            kwargs=self.get_url_kwargs(),
-        )
+        try:
+            return reverse(
+                "{app_label}-admin:{model_name}-delete".format(
+                    app_label=self._meta.app_label, model_name=self._meta.model_name
+                ),
+                kwargs=self.get_url_kwargs(),
+            )
+        except NoReverseMatch:
+            return "no-reverse-match"
 
     @classmethod
     def get_admin_serializer(cls):
