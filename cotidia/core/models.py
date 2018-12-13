@@ -50,12 +50,31 @@ class BaseModel(models.Model):
     def get_content_type(self):
         return ContentType.objects.get_for_model(self)
 
+    def get_parent_field(self):
+        if hasattr(self, "parent_field"):
+            return self.parent_field
+        else:
+            return None
+
+    def get_parent(self):
+        if self.get_parent_field():
+            return getattr(self, self.get_parent_field())
+        else:
+            return None
+
+    def get_url_kwargs(self):
+        kwargs = {"pk": self.id}
+        parent = self.get_parent()
+        if parent:
+            kwargs.update({"parent_id": parent.id})
+        return kwargs
+
     def get_admin_detail_url(self):
         return reverse(
             "{app_label}-admin:{model_name}-detail".format(
                 app_label=self._meta.app_label, model_name=self._meta.model_name
             ),
-            kwargs={"pk": self.id},
+            kwargs=self.get_url_kwargs(),
         )
 
     def get_admin_update_url(self):
@@ -63,7 +82,7 @@ class BaseModel(models.Model):
             "{app_label}-admin:{model_name}-update".format(
                 app_label=self._meta.app_label, model_name=self._meta.model_name
             ),
-            kwargs={"pk": self.id},
+            kwargs=self.get_url_kwargs(),
         )
 
     def get_admin_delete_url(self):
@@ -71,7 +90,7 @@ class BaseModel(models.Model):
             "{app_label}-admin:{model_name}-delete".format(
                 app_label=self._meta.app_label, model_name=self._meta.model_name
             ),
-            kwargs={"pk": self.id},
+            kwargs=self.get_url_kwargs(),
         )
 
     @classmethod
