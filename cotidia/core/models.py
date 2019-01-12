@@ -4,6 +4,7 @@ import importlib
 from django.db import models
 from django.urls import reverse, NoReverseMatch
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.gis.db.models import PointField
 
 
 class CalculatedField:
@@ -121,3 +122,39 @@ class BaseModel(models.Model):
                     fields = "__all__"
 
             return GenericSerializer
+
+
+class BaseAddress(models.Model):
+    address_line_1 = models.CharField(max_length=255)
+    address_line_2 = models.CharField(max_length=255, null=True, blank=True)
+    address_line_3 = models.CharField(max_length=255, null=True, blank=True)
+    address_city = models.CharField(max_length=35)
+    address_state = models.CharField(max_length=35, null=True, blank=True)
+    address_postcode = models.CharField(max_length=8)
+    address_country = models.CharField(max_length=2)
+
+    lat = models.FloatField(blank=True, null=True)
+    lng = models.FloatField(blank=True, null=True)
+    point = PointField(geography=True, dim=2, srid=4326, null=True)
+
+    class Meta:
+        abstract = True
+
+    def address_to_string(self):
+        address_fields = []
+        if self.address_line_1:
+            address_fields.append(self.address_line_1)
+        if self.address_line_2:
+            address_fields.append(self.address_line_2)
+        if self.address_line_3:
+            address_fields.append(self.address_line_3)
+        if self.address_city:
+            address_fields.append(self.address_city)
+        if self.address_state:
+            address_fields.append(self.address_state)
+        if self.address_postcode:
+            address_fields.append(self.address_postcode)
+        if self.address_country:
+            address_fields.append(self.address_country)
+
+        return ", ".join(address_fields)
