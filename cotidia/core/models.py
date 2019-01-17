@@ -3,41 +3,11 @@ import importlib
 
 from django.db import models
 from django.urls import reverse, NoReverseMatch
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import PointField
-
-
-class CalculatedField:
-    def __init__(self, function, field_name=None):
-        self.function = function
-        if field_name is None:
-            self.field_name = function.__name__[1:]
-        else:
-            self.field_name = field_name
-
-    def __get__(self, obj, type=None):
-        if obj is None:
-            return self
-        else:
-            return self.function(obj)
-
-    def __set__(self, obj, value):
-        raise AttributeError("Read only field")
-
-    def __str__(self):
-        return self.field_name
-
-
-def calculated_field(_handlers):
-    def parameter_wrapper(field_name=None):
-        def wrapper(func):
-            field = CalculatedField(func, field_name)
-            _handlers.append(field)
-            return field
-
-        return wrapper
-
-    return parameter_wrapper
+from django.contrib.gis.geos import Point
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 
 
 class BaseModel(models.Model):
@@ -49,6 +19,10 @@ class BaseModel(models.Model):
         abstract = True
 
     def get_content_type(self):
+        return ContentType.objects.get_for_model(self)
+
+    @property
+    def content_type(self):
         return ContentType.objects.get_for_model(self)
 
     def get_parent_field(self):
@@ -158,3 +132,42 @@ class BaseAddress(models.Model):
             address_fields.append(self.address_country)
 
         return ", ".join(address_fields)
+
+    def save(self, *args, **kwargs):
+        if self.lng and self.lat:
+            self.point = Point(self.lng, self.lat)
+        super().save(*args, **kwargs)
+
+
+class BaseStatus(BaseModel):
+    status = models.CharField(max_length=255)
+    taxonomy = models.CharField(max_length=255, null=True)
+    notes = models.TextField(max_length=500, null=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL
+    )
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey("content_type", "object_id")
+
+    class Meta:
+        abstract = True
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return "{}.{} {} {} {}".format(
+            self.content_object._meta.app_label,
+            self.content_object._meta.model_name,
+            self.status,
+            self.created_at.strftime("%Y-%m-%d %H:%M"),
+            self.author,
+        )
+
+    @property
+    def author(self):
+        return self.user or "AUTO"
+
+
+class Status(BaseStatus):
+    pass
