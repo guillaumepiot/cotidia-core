@@ -12,7 +12,6 @@ class StatusModelMixin(models.Model):
     def status_set(self, status, notes=None, taxonomy=None, user=None):
         self.status = status
         self.save()
-        print("save status", self.status)
         kwargs = {
             "status": status,
             "notes": notes,
@@ -22,13 +21,18 @@ class StatusModelMixin(models.Model):
         }
         return Status.objects.create(**kwargs)
 
-    def status_list(self, taxonomy=None):
+    def status_list(self, taxonomy=None, user=None):
         queryset = Status.objects.filter(
             content_type=self.content_type, object_id=self.id
         )
         if taxonomy:
             queryset = queryset.filter(taxonomy=taxonomy)
+        if user:
+            if user == "AUTO":
+                queryset = queryset.filter(user=None)
+            else:
+                queryset = queryset.filter(user=user)
         return queryset
 
-    def status_latest(self, taxonomy=None):
+    def status_latest(self, taxonomy=None, user=None):
         return self.status_list(taxonomy=taxonomy).first()
