@@ -24,10 +24,10 @@ class StatusAdminTests(TestCase):
         self.item = GenericItem.objects.create()
         self.other_item = GenericItem.objects.create()
 
-        self.status_1 = self.item.status_set("DRAFT")
-        self.status_2 = self.item.status_set("READY", taxonomy="mail")
-        self.other_item.status_set("DRAFT")
-        self.other_item.status_set("CANCELLED")
+        self.status_1 = self.item.status_set("DRAFT", taxonomy="status")
+        self.status_2 = self.item.status_set("READY", taxonomy="payment_status")
+        self.other_item.status_set("DRAFT", taxonomy="status")
+        self.other_item.status_set("CANCELLED", taxonomy="status")
 
         self.c = Client()
 
@@ -59,7 +59,7 @@ class StatusAdminTests(TestCase):
                 "app_label": self.item.content_type.app_label,
                 "model": self.item.content_type.model,
                 "object_id": self.item.id,
-                "taxonomy": "mail",
+                "taxonomy": "payment_status",
             },
         )
 
@@ -77,7 +77,7 @@ class StatusAdminTests(TestCase):
                 "app_label": self.item.content_type.app_label,
                 "model": self.item.content_type.model,
                 "object_id": self.item.id,
-                "taxonomy": "mail",
+                "taxonomy": "payment_status",
             },
         )
 

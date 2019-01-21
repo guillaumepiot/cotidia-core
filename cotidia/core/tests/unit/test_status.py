@@ -12,7 +12,7 @@ class StatusModelTest(TestCase):
         self.kwargs = {
             "status": "SENT",
             "notes": "Sent with Cotidia Mail",
-            "taxonomy": "mail",
+            "taxonomy": "status",
             "user": self.superuser,
             "content_object": self.item,
         }
@@ -22,7 +22,7 @@ class StatusModelTest(TestCase):
         status.refresh_from_db()
         self.assertEqual(status.status, "SENT")
         self.assertEqual(status.notes, "Sent with Cotidia Mail")
-        self.assertEqual(status.taxonomy, "mail")
+        self.assertEqual(status.taxonomy, "status")
         self.assertEqual(status.user, self.superuser)
         self.assertEqual(status.content_object, self.item)
         self.assertTrue(status.created_at)
@@ -74,18 +74,18 @@ class StatusModelMixinTest(TestCase):
         ).first()
 
     def test_status_set_user(self):
-        self.item.status_set("SENT", user=self.superuser)
+        self.item.status_set("SENT", user=self.superuser, taxonomy="status")
         status = self.get_item_status()
-        self.item.refresh_from_db()
-        self.assertEqual(self.item.status, "SENT")
+        item = GenericItem.objects.get(id=self.item.id)
+        self.assertEqual(item.status, "SENT")
         self.assertEqual(status.status, "SENT")
         self.assertEqual(status.author, self.superuser)
 
     def test_status_set_auto(self):
-        self.item.status_set("SENT")
+        self.item.status_set("SENT", taxonomy="status")
         status = self.get_item_status()
-        self.item.refresh_from_db()
-        self.assertEqual(self.item.status, "SENT")
+        item = GenericItem.objects.get(id=self.item.id)
+        self.assertEqual(item.status, "SENT")
         self.assertEqual(status.status, "SENT")
         self.assertEqual(status.author, "AUTO")
 
@@ -95,42 +95,47 @@ class StatusModelMixinTest(TestCase):
         self.assertEqual(status.taxonomy, "mail")
 
     def test_status_set_notes(self):
-        self.item.status_set("SENT", notes="Test status", user=self.superuser)
+        self.item.status_set(
+            "SENT", notes="Test status", user=self.superuser, taxonomy="status"
+        )
         status = self.get_item_status()
         self.assertEqual(status.notes, "Test status")
 
     def test_status_list(self):
-        status_1 = self.item.status_set("DRAFT", user=self.superuser)
-        status_2 = self.item.status_set("SENT", user=self.superuser)
+        status_1 = self.item.status_set("DRAFT", user=self.superuser, taxonomy="status")
+        status_2 = self.item.status_set("SENT", user=self.superuser, taxonomy="status")
         self.assertEqual(self.item.status_list().count(), 2)
         self.assertEqual(self.item.status_list()[0], status_2)
         self.assertEqual(self.item.status_list()[1], status_1)
 
     def test_status_latest(self):
-        self.item.status_set("DRAFT", user=self.superuser)
-        status_2 = self.item.status_set("SENT", user=self.superuser)
+        self.item.status_set("DRAFT", user=self.superuser, taxonomy="status")
+        status_2 = self.item.status_set("SENT", user=self.superuser, taxonomy="status")
         self.assertEqual(self.item.status_latest(), status_2)
 
     def test_status_list_taxonomy(self):
         """Filter by taxonomy"""
-        status_1 = self.item.status_set("DRAFT", taxonomy="mail")
-        status_2 = self.item.status_set("SENT", taxonomy="other")
-        self.assertEqual(self.item.status_list(taxonomy="mail").count(), 1)
-        self.assertEqual(self.item.status_list(taxonomy="mail")[0], status_1)
-        self.assertEqual(self.item.status_list(taxonomy="other").count(), 1)
-        self.assertEqual(self.item.status_list(taxonomy="other")[0], status_2)
+        status_1 = self.item.status_set("DRAFT", taxonomy="status")
+        status_2 = self.item.status_set("SENT", taxonomy="payment_status")
+        self.assertEqual(self.item.status_list(taxonomy="status").count(), 1)
+        self.assertEqual(self.item.status_list(taxonomy="status")[0], status_1)
+        self.assertEqual(self.item.status_list(taxonomy="payment_status").count(), 1)
+        self.assertEqual(self.item.status_list(taxonomy="payment_status")[0], status_2)
+        item = GenericItem.objects.get(id=self.item.id)
+        self.assertEqual(item.status, "DRAFT")
+        self.assertEqual(item.payment_status, "SENT")
 
     def test_status_latest_taxonomy(self):
         """Latest by taxonomy"""
-        status_1 = self.item.status_set("DRAFT", taxonomy="mail")
-        status_2 = self.item.status_set("SENT", taxonomy="other")
-        self.assertEqual(self.item.status_latest(taxonomy="mail"), status_1)
-        self.assertEqual(self.item.status_latest(taxonomy="other"), status_2)
+        status_1 = self.item.status_set("DRAFT", taxonomy="status")
+        status_2 = self.item.status_set("SENT", taxonomy="payment_status")
+        self.assertEqual(self.item.status_latest(taxonomy="status"), status_1)
+        self.assertEqual(self.item.status_latest(taxonomy="payment_status"), status_2)
 
     def test_status_list_item_only(self):
         """Ensure statuses are for the item only"""
-        status_1 = self.item.status_set("DRAFT")
-        status_2 = self.other_item.status_set("DRAFT")
+        status_1 = self.item.status_set("DRAFT", taxonomy="status")
+        status_2 = self.other_item.status_set("DRAFT", taxonomy="status")
         self.assertEqual(self.item.status_list().count(), 1)
         self.assertEqual(self.item.status_list()[0], status_1)
         self.assertEqual(self.other_item.status_list().count(), 1)

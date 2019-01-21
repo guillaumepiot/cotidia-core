@@ -5,4 +5,4 @@ from cotidia.core.mixins import StatusModelMixin
 
 
 class GenericItem(BaseModel, StatusModelMixin):
-    pass
+    status_fields = ["status", "payment_status"]

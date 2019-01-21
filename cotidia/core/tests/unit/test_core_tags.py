@@ -13,14 +13,14 @@ class StatusListForObjTest(TestCase):
         self.item = GenericItem.objects.create()
 
     def test_status_list_for_obj(self):
-        self.item.status_set("DRAFT", user=self.superuser)
-        self.item.status_set("DRAFT", user=self.superuser)
+        self.item.status_set("DRAFT", user=self.superuser, taxonomy="status")
+        self.item.status_set("DRAFT", user=self.superuser, taxonomy="status")
 
         queryset = status_list_for_obj(self.item)
         self.assertEqual(queryset.count(), 2)
 
     def test_status_list_for_obj_taxonomy(self):
-        self.item.status_set("DRAFT")
+        self.item.status_set("DRAFT", taxonomy="status")
         status_2 = self.item.status_set("DRAFT", taxonomy="mail")
 
         queryset = status_list_for_obj(self.item, taxonomy="mail")
@@ -28,9 +28,11 @@ class StatusListForObjTest(TestCase):
         self.assertEqual(queryset[0], status_2)
 
     def test_status_list_for_obj_user(self):
-        self.item.status_set("DRAFT", user=self.superuser)
-        status_2 = self.item.status_set("DRAFT", user=self.admin_user)
-        status_3 = self.item.status_set("DRAFT")
+        self.item.status_set("DRAFT", user=self.superuser, taxonomy="status")
+        status_2 = self.item.status_set(
+            "DRAFT", user=self.admin_user, taxonomy="status"
+        )
+        status_3 = self.item.status_set("DRAFT", taxonomy="status")
 
         queryset = status_list_for_obj(self.item, user=self.admin_user)
         self.assertEqual(queryset.count(), 1)
