@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, Max, Prefetch
 from django.contrib.contenttypes.models import ContentType
 
 from cotidia.core.models import Status
@@ -11,9 +11,26 @@ class StatusManager(models.Manager):
             content_type = ContentType.objects.get_for_model(self.model)
             q = {}
             for f in self.model.status_fields:
+
+                # Testing query to ensure that the latest status always get returned.
+                # We are not using this query because the basic query still order correctly.
+                # max_statuses = Status.objects.filter(
+                #     content_type=content_type,
+                #     object_id=OuterRef("object_id"),
+                #     taxonomy=f,
+                # ).annotate(Max("created_at"))
+
+                # statuses = Status.objects.filter(
+                #     content_type=content_type,
+                #     object_id=OuterRef("pk"),
+                #     taxonomy=f,
+                #     created_at=Subquery(max_statuses.values("created_at__max")[:1]),
+                # )
+
                 statuses = Status.objects.filter(
                     content_type=content_type, object_id=OuterRef("pk"), taxonomy=f
                 )
+
                 q[f] = Subquery(statuses.values("status")[:1])
             return super().get_queryset().annotate(**q)
         else:
